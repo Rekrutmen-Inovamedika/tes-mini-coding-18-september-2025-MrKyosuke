@@ -23,7 +23,6 @@ use yii\helpers\ArrayHelper;
     <?= $form->field($model, 'obat2_id')->dropDownList(\app\models\Obat::getList(), ['prompt' => 'Pilih Obat 2', 'data-harga' => '']) ?>
 
     <?= $form->field($model, 'obat3_id')->dropDownList(\app\models\Obat::getList(), ['prompt' => 'Pilih Obat 3', 'data-harga' => '']) ?>
-    <?= $form->field($model, 'total_harga')->textInput() ?>
     <?= $form->field($model, 'total_harga')->textInput(['readonly' => true]) ?>
 
     <div class="form-group">

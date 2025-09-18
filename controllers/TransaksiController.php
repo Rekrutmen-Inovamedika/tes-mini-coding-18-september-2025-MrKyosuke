@@ -78,15 +78,76 @@ class TransaksiController extends Controller
      * @return string|\yii\web\Response
      */
     public function actionCreate()
-    {
-        $model = new Transaksi();
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+{
+    $model = new Transaksi();
+
+    if ($model->load(Yii::$app->request->post())) {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $total = 0;
+
+            // ambil tindakan
+            $tindakanIds = Yii::$app->request->post('Transaksi')['tindakanIds'] ?? [];
+            if (!empty($tindakanIds)) {
+                $tindakans = \app\models\Tindakan::find()->where(['id' => $tindakanIds])->all();
+                foreach ($tindakans as $t) {
+                    $total += $t->harga;
+                }
+            }
+
+            // ambil obat
+            for ($i = 1; $i <= 3; $i++) {
+                $obatId = Yii::$app->request->post('Transaksi')["obat{$i}_id"] ?? null;
+                $jumlah = Yii::$app->request->post('Transaksi')["jumlah_obat{$i}"] ?? 1;
+
+                if (!empty($obatId)) {
+                    $obat = \app\models\Obat::findOne($obatId);
+                    if ($obat) {
+                        $total += $obat->harga_obat * $jumlah;
+                    }
+                }
+            }
+
+            // set total harga
+            $model->total_harga = $total;
+
+            if ($model->save(false)) {
+                // simpan ke transaksi_tindakan
+                foreach ($tindakanIds as $tid) {
+                    $tt = new \app\models\TransaksiTindakan();
+                    $tt->transaksi_id = $model->id;
+                    $tt->tindakan_id = $tid;
+                    $tt->save(false);
+                }
+
+                // simpan ke transaksi_obat
+                for ($i = 1; $i <= 3; $i++) {
+                    $obatId = Yii::$app->request->post('Transaksi')["obat{$i}_id"] ?? null;
+                    $jumlah = Yii::$app->request->post('Transaksi')["jumlah_obat{$i}"] ?? 1;
+
+                    if (!empty($obatId)) {
+                        $to = new \app\models\TransaksiObat();
+                        $to->transaksi_id = $model->id;
+                        $to->obat_id = $obatId;
+                        $to->jumlah = $jumlah;
+                        $to->save(false);
+                    }
+                }
+
+                $transaction->commit();
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
         }
-        return $this->render('create', [
-            'model' => $model,
-        ]);
     }
+
+    return $this->render('create', [
+        'model' => $model,
+    ]);
+}
+
 
 
 

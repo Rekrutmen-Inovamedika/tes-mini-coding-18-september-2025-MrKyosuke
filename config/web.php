@@ -14,10 +14,10 @@ $config = [
         'kartik\select2\Select2' => '@vendor/kartik-v/yii2-widget-select2/src/Select2.php'
     ],
     'components' => [
-        'validator' => [
-            'class' => 'yii\validators\Validator',
-            // konfigurasi validator
-        ],
+        // 'validator' => [
+        //     'class' => 'yii\validators\Validator',
+        //     // konfigurasi validator
+        // ],
         'authManager' => [
             'class' => 'yii\rbac\DbManager',
             'defaultRoles' => ['guest'], // or use 'yii\rbac\DbManager'
